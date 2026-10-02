@@ -7,7 +7,8 @@
     "dev": "vite --host 0.0.0.0",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview --host 0.0.0.0",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "esbuild test/scenarios.ts --bundle --format=esm --outfile=node_modules/.cache/scenarios.mjs --log-level=error && node node_modules/.cache/scenarios.mjs"
   },
   "dependencies": {
     "@material/web": "^2.5.0",

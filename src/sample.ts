@@ -9,6 +9,8 @@ const letters = 'abcdefghijklmnopqrstuvwxyz'.split('').map<TranscriptionRule>((l
   enabled: true,
   suspicious: false,
   description: '拉丁字母基础表',
+  revision: 1,
+  aliases: [],
 }));
 
 const punctuation: TranscriptionRule[] = [
@@ -21,6 +23,8 @@ const punctuation: TranscriptionRule[] = [
   enabled: true,
   suspicious: false,
   description,
+  revision: 1,
+  aliases: [],
 }));
 
 const contractions: TranscriptionRule[] = [
@@ -35,48 +39,57 @@ const contractions: TranscriptionRule[] = [
   enabled: true,
   suspicious: Boolean(suspicious),
   description: String(description),
+  revision: 1,
+  aliases: [],
 }));
 
 const commonRules: TranscriptionRule[] = [
-  { id: 'number-sign', source: '#', output: '⠼', kind: 'number', enabled: true, suspicious: false, description: '数字起始符' },
-  { id: 'capital-sign', source: 'capital', output: '⠠', kind: 'special', enabled: true, suspicious: false, description: '大写起始符' },
+  { id: 'number-sign', source: '#', output: '⠼', kind: 'number', enabled: true, suspicious: false, description: '数字起始符', revision: 1, aliases: [] },
+  { id: 'capital-sign', source: 'capital', output: '⠠', kind: 'special', enabled: true, suspicious: false, description: '大写起始符', revision: 1, aliases: [] },
   ...letters,
   ...punctuation,
 ];
 
-const ruleSets: RuleSet[] = [
-  {
-    id: 'ueb-teaching',
-    name: 'UEB 教学规则',
-    description: '英美盲文教学规则，默认启用常用缩写并将低年级易混淆缩写标为可疑。',
-    contractions: true,
-    hyphenMode: 'cross-line',
-    rules: [...commonRules, ...contractions],
-  },
-  {
-    id: 'literary-standard',
-    name: '通用文学盲文',
-    description: '保留完整缩写表，适合课外读本和工作表。',
-    contractions: true,
-    hyphenMode: 'inline',
-    rules: [...commonRules, ...contractions.filter((rule) => !rule.suspicious)],
-  },
-  {
-    id: 'spelling-first',
-    name: '逐字拼读（无缩写）',
-    description: '低年级识字课使用，关闭缩写和跨行连字符压缩。',
-    contractions: false,
-    hyphenMode: 'inline',
-    rules: commonRules,
-  },
-];
+const ruleSetDefaults = { updatedAt: new Date().toISOString() };
+
+export function createDefaultRuleSets(): RuleSet[] {
+  return [
+    {
+      id: 'ueb-teaching',
+      name: 'UEB 教学规则',
+      description: '英美盲文教学规则，默认启用常用缩写并将低年级易混淆缩写标为可疑。',
+      contractions: true,
+      hyphenMode: 'cross-line',
+      rules: [...commonRules, ...contractions],
+      ...ruleSetDefaults,
+    },
+    {
+      id: 'literary-standard',
+      name: '通用文学盲文',
+      description: '保留完整缩写表，适合课外读本和工作表。',
+      contractions: true,
+      hyphenMode: 'inline',
+      rules: [...commonRules, ...contractions.filter((rule) => !rule.suspicious)],
+      ...ruleSetDefaults,
+    },
+    {
+      id: 'spelling-first',
+      name: '逐字拼读（无缩写）',
+      description: '低年级识字课使用，关闭缩写和跨行连字符压缩。',
+      contractions: false,
+      hyphenMode: 'inline',
+      rules: commonRules,
+      ...ruleSetDefaults,
+    },
+  ];
+}
 
 const base: ProjectState = {
   id: 'braille-course-1010',
   title: '春天观察课 · 盲文教材',
   author: '资源教师 / 林老师',
   activeRuleSetId: 'ueb-teaching',
-  ruleSets,
+  ruleSets: [],
   selectedLineId: 'line-1',
   lines: [
     { id: 'line-1', source: 'The small seed is under the soil.', tokens: [], status: 'questionable', note: '“the”是否符合学生当前缩写进度？', continuesPrevious: false, continuesNext: false },
@@ -93,6 +106,12 @@ const base: ProjectState = {
   updatedAt: new Date().toISOString(),
 };
 
-export function createInitialProject(): ProjectState {
-  return analyzeProject(base);
+export function createInitialProject(ruleSets: RuleSet[] = createDefaultRuleSets()): ProjectState {
+  return analyzeProject({
+    ...base,
+    ruleSets,
+    activeRuleSetId: ruleSets.some((ruleSet) => ruleSet.id === base.activeRuleSetId) ? base.activeRuleSetId : ruleSets[0].id,
+    lastCheckedAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  });
 }

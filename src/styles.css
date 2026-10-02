@@ -56,8 +56,15 @@ md-text-button, md-filled-button, md-outlined-button, md-filled-tonal-button { w
 }
 .topbar-center { gap: 8px; color: #d7eee7; font-size: 13px; }
 .topbar-center small { color: #89aaa1; margin-left: 6px; }
+.topbar-divider { width: 1px; height: 16px; margin: 0 4px; background: #3c6157; }
 .connection-dot { width: 8px; height: 8px; border-radius: 50%; background: #f8b75e; box-shadow: 0 0 0 4px rgba(248,183,94,.13); }
 .connection-dot.online { background: #72d7ab; box-shadow: 0 0 0 4px rgba(114,215,171,.13); }
+.connection-dot.error { background: #ef8a80; box-shadow: 0 0 0 4px rgba(239,138,128,.16); }
+.retry-save {
+  border: 1px solid #8fb5aa; border-radius: 999px; background: transparent; color: #eafff7;
+  padding: 3px 10px; font-size: 11px; cursor: pointer;
+}
+.retry-save:hover { background: rgba(216,247,235,.12); }
 .topbar-actions { gap: 2px; }
 .topbar-actions md-icon-button { --md-icon-button-icon-color: #e9fff8; }
 .topbar-actions md-outlined-button { --md-outlined-button-label-text-color: #effffa; --md-outlined-button-outline-color: #72948b; }
@@ -128,6 +135,11 @@ md-linear-progress { width: 100%; --md-linear-progress-active-indicator-color: #
 .toolbar-actions { display: flex; gap: 6px; }
 .import-strip { padding: 12px 20px; display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 12px; background: #eef7f2; border-bottom: 1px solid #c7dbd2; }
 .import-strip > div { display: flex; gap: 5px; }
+.notice-strip {
+  padding: 9px 22px; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  background: #fdf3e0; border-bottom: 1px solid #ecd9ae; color: #6d4a08; font-size: 12px; line-height: 1.5;
+}
+.notice-strip.warning { background: #fdeaea; border-bottom-color: #f0c8c4; color: #7a241d; }
 .line-list { padding: 16px 18px 80px; display: flex; flex-direction: column; gap: 12px; }
 .line-card {
   display: grid; grid-template-columns: 46px minmax(0, 1fr); background: var(--paper);
@@ -187,12 +199,22 @@ md-linear-progress { width: 100%; --md-linear-progress-active-indicator-color: #
 .rule-summary { padding: 12px; margin-bottom: 10px; border-radius: 10px; background: #eaf4f0; }
 .rule-summary p { color: var(--muted); font-size: 11px; line-height: 1.45; }
 .metric-row { display: flex; gap: 12px; margin-top: 8px; color: #53645f; font-size: 10px; }
-.rule-detail-card { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-.rule-detail-card > div:first-child { min-width: 0; }
+.rule-detail-card { display: flex; flex-direction: column; align-items: stretch; gap: 8px; }
+.rule-detail-main { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.rule-detail-main > div:first-child { min-width: 0; }
 .rule-detail-card strong, .rule-detail-card span { display: block; }
 .rule-detail-card strong { font-size: 13px; }
 .rule-detail-card span { color: #52645e; font-size: 11px; margin-top: 2px; }
+.rule-rev {
+  display: inline-block; margin-left: 5px; padding: 1px 6px; border-radius: 8px;
+  background: #e3efe9; color: #2f5a4b; font-size: 9px; font-weight: 600; vertical-align: 2px;
+}
 .rule-detail-actions { margin: 0; flex-direction: column; }
+.rule-merge-row { display: flex; align-items: center; gap: 6px; border-top: 1px dashed var(--line); padding-top: 8px; }
+.rule-merge-row select {
+  flex: 1; min-width: 0; border: 1px solid var(--line); border-radius: 7px; background: #fbfdfb;
+  padding: 5px 7px; color: #2c3b37; font-size: 11px;
+}
 .snapshot-callout { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: #edf7f3; }
 .timeline { margin-top: 18px; padding-left: 8px; border-left: 1px solid #c9d5d1; }
 .timeline-item { display: grid; grid-template-columns: 12px 1fr; gap: 6px; padding: 0 0 18px 4px; }
@@ -209,7 +231,7 @@ md-linear-progress { width: 100%; --md-linear-progress-active-indicator-color: #
 
 @media print {
   body { min-width: 0; overflow: visible; }
-  .topbar, .status-ribbon, .left-panel, .right-panel, .editor-toolbar, .line-actions, .note-field { display: none !important; }
+  .topbar, .status-ribbon, .left-panel, .right-panel, .editor-toolbar, .line-actions, .note-field, .notice-strip { display: none !important; }
   .workspace-grid, .editor-panel, .line-list { display: block; height: auto; overflow: visible; background: white; padding: 0; }
   .line-card { break-inside: avoid; box-shadow: none; }
 }
