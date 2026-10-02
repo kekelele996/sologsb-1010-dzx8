@@ -55,6 +55,7 @@ function addToken(
     braille,
     kind,
     ruleId: rule?.id,
+    specEntryId: rule?.specEntryId,
     suspicious: Boolean(rule?.suspicious),
     offset,
   });
@@ -154,6 +155,7 @@ function issue(
     lineId: line.id,
     tokenId: token?.id,
     ruleId: token?.ruleId,
+    specEntryId: token?.specEntryId,
     severity,
     code,
     message,
@@ -161,7 +163,12 @@ function issue(
   };
 }
 
-function analyzeLine(line: TextbookLine, previousLine?: TextbookLine): { line: TextbookLine; issues: ProofIssue[] } {
+/**
+ * 分析单行：重新生成问题与跨行标记。
+ * 已批准/已校对的行不被普通重算自动降级——只有规范变更对账（spec.ts 中
+ * 的 reconcileProject）确认结果确实变化时才退回待核对。
+ */
+export function analyzeSingleLine(line: TextbookLine, previousLine?: TextbookLine): { line: TextbookLine; issues: ProofIssue[] } {
   const issues: ProofIssue[] = [];
   const tokenText = line.tokens.map((token) => token.braille).join('');
   const hasContinuation = line.source.trimEnd().endsWith('-');
@@ -193,24 +200,22 @@ function analyzeLine(line: TextbookLine, previousLine?: TextbookLine): { line: T
     issues.push(issue(nextLine, 'orphan-fragment', '断词后仅剩一个字母，教学排版中通常应整体移到下一行。', 'warning'));
   }
 
-  if (issues.some((item) => item.severity === 'error')) {
-    nextLine.status = 'questionable';
-  } else if (issues.length > 0 && nextLine.status === 'unchecked') {
+  if (nextLine.status !== 'approved' && nextLine.status !== 'reviewed' && issues.length > 0) {
     nextLine.status = 'questionable';
   }
 
   return { line: nextLine, issues };
 }
 
-export function analyzeProject(state: ProjectState): ProjectState {
-  const ruleSet = state.ruleSets.find((item) => item.id === state.activeRuleSetId) ?? state.ruleSets[0];
+export function analyzeProject(state: ProjectState, ruleSetOverride?: RuleSet): ProjectState {
+  const ruleSet = ruleSetOverride ?? state.ruleSets.find((item) => item.id === state.activeRuleSetId) ?? state.ruleSets[0];
   const nextLines: TextbookLine[] = [];
   const issues: ProofIssue[] = [];
 
   state.lines.forEach((line, index) => {
     const previousSourceContinues = Boolean(state.lines[index - 1]?.source.trimEnd().endsWith('-'));
     const tokens = transcribeLine(line.source, ruleSet, previousSourceContinues);
-    const analyzed = analyzeLine({ ...line, tokens }, state.lines[index - 1]);
+    const analyzed = analyzeSingleLine({ ...line, tokens }, state.lines[index - 1]);
     nextLines.push(analyzed.line);
     issues.push(...analyzed.issues);
   });

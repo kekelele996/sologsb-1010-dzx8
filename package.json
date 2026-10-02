@@ -7,7 +7,10 @@
     "dev": "vite --host 0.0.0.0",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview --host 0.0.0.0",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test:scenarios": "esbuild scripts/scenario-test.ts --bundle --platform=node --format=esm --outfile=scripts/.scenario-test.mjs && node scripts/.scenario-test.mjs && rm -f scripts/.scenario-test.mjs",
+    "test:bootstrap": "esbuild scripts/bootstrap-test.ts --bundle --platform=node --format=esm --outfile=scripts/.bootstrap-test.mjs && node scripts/.bootstrap-test.mjs && rm -f scripts/.bootstrap-test.mjs",
+    "test": "npm run test:scenarios && npm run test:bootstrap"
   },
   "dependencies": {
     "@material/web": "^2.5.0",

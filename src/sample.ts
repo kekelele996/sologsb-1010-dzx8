@@ -1,5 +1,6 @@
 import { analyzeProject } from './braille';
-import type { ProjectState, RuleSet, TranscriptionRule } from './types';
+import type { ProjectState, RuleSet, SpecTable, TranscriptionRule } from './types';
+import { createInitialSpec } from './spec';
 
 const letters = 'abcdefghijklmnopqrstuvwxyz'.split('').map<TranscriptionRule>((letter, index) => ({
   id: `letter-${letter}`,
@@ -9,6 +10,8 @@ const letters = 'abcdefghijklmnopqrstuvwxyz'.split('').map<TranscriptionRule>((l
   enabled: true,
   suspicious: false,
   description: '拉丁字母基础表',
+  specEntryId: `letter-${letter}`,
+  specRevision: 1,
 }));
 
 const punctuation: TranscriptionRule[] = [
@@ -21,6 +24,8 @@ const punctuation: TranscriptionRule[] = [
   enabled: true,
   suspicious: false,
   description,
+  specEntryId: `punctuation-${source}`,
+  specRevision: 1,
 }));
 
 const contractions: TranscriptionRule[] = [
@@ -35,11 +40,13 @@ const contractions: TranscriptionRule[] = [
   enabled: true,
   suspicious: Boolean(suspicious),
   description: String(description),
+  specEntryId: `contraction-${source}`,
+  specRevision: 1,
 }));
 
 const commonRules: TranscriptionRule[] = [
-  { id: 'number-sign', source: '#', output: '⠼', kind: 'number', enabled: true, suspicious: false, description: '数字起始符' },
-  { id: 'capital-sign', source: 'capital', output: '⠠', kind: 'special', enabled: true, suspicious: false, description: '大写起始符' },
+  { id: 'number-sign', source: '#', output: '⠼', kind: 'number', enabled: true, suspicious: false, description: '数字起始符', specEntryId: 'number-sign', specRevision: 1 },
+  { id: 'capital-sign', source: 'capital', output: '⠠', kind: 'special', enabled: true, suspicious: false, description: '大写起始符', specEntryId: 'capital-sign', specRevision: 1 },
   ...letters,
   ...punctuation,
 ];
@@ -75,7 +82,9 @@ const base: ProjectState = {
   id: 'braille-course-1010',
   title: '春天观察课 · 盲文教材',
   author: '资源教师 / 林老师',
+  schemaVersion: 2,
   activeRuleSetId: 'ueb-teaching',
+  specRevision: 1,
   ruleSets,
   selectedLineId: 'line-1',
   lines: [
@@ -93,6 +102,11 @@ const base: ProjectState = {
   updatedAt: new Date().toISOString(),
 };
 
-export function createInitialProject(): ProjectState {
-  return analyzeProject(base);
+export function createInitialSpecTable(): SpecTable {
+  return createInitialSpec(ruleSets);
+}
+
+export function createInitialProject(): { spec: SpecTable; project: ProjectState } {
+  const spec = createInitialSpecTable();
+  return { spec, project: analyzeProject({ ...base, specRevision: spec.revision }) };
 }
